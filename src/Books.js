@@ -59,7 +59,7 @@ class Books extends React.Component {
     if (!books) { return null; }
 
     return books.filter(book => book.shelf == type)
-        .map(book => <Book book={book} key={book.id} />)
+        .map(book => <Book book={book} key={book.id} handleShelfChange={this.props.handleShelfChange}/>)
   }
 }
 

@@ -6,12 +6,14 @@ import Book from './Book';
 
 class Search extends React.Component {
   state = {
-    books: [],
+    // books: [],
     term: ''
   }
-
+  componentWillUnmount() {
+    this.handleSearchBooks(null);
+  }
   render() {
-    console.log('search books~', this.state.books)
+    console.log(this.props.books)
     return (
       <div className='app'>
           <div className='search-books'>
@@ -20,7 +22,7 @@ class Search extends React.Component {
               <div className='search-books-input-wrapper'>
                 <input type='text'
                   placeholder='Search by title or author'
-                  onChange={(e) => this.handleSearch(e.target.value)} />
+                  onChange={(e) => this.handleSearchBooks(e.target.value)} />
               </div>
             </div>
             <div className='search-books-results'>
@@ -34,7 +36,7 @@ class Search extends React.Component {
   }
 
   renderBooks() {
-    const { books } = this.state;
+    const { books } = this.props;
     if (!books ||
         books.error ||
         Array.isArray(books) && !books.length) {
@@ -43,16 +45,19 @@ class Search extends React.Component {
       );
     }
 
-    return books.map(book => <Book book={book} key={book.id} />);
+    return books.map(book => <Book book={book} key={book.id} handleShelfChange={this.props.handleShelfChange} />);
   }
 
-  handleSearch(term) {
-      BooksAPI.search(term, 20)
-      .then((books) => {
-        this.setState({ books })
-      })
-      .catch(error => console.log('error:', error))
+  handleSearchBooks(term) {
+    this.props.handleSearch(term);
   }
+  // handleSearch(term) {
+  //     BooksAPI.search(term, 20)
+  //     .then((books) => {
+  //       this.setState({ books })
+  //     })
+  //     .catch(error => console.log('error:', error))
+  // }
 }
 
 export default Search;
