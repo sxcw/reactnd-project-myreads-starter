@@ -1,6 +1,5 @@
 import React from 'react'
-import { Route, Link } from 'react-router-dom'
-import * as BooksAPI from './BooksAPI'
+import { Link } from 'react-router-dom'
 import './App.css'
 import Book from './Book';
 
@@ -58,9 +57,11 @@ class Books extends React.Component {
   renderBooks(books, type) {
     if (!books) { return null; }
 
-    return books.filter(book => book.shelf == type)
-        .map(book => <Book book={book} key={book.id} handleShelfChange={this.props.handleShelfChange}/>)
+    return books.filter(book => book.shelf === type)
+      .map(book => <Book book={book}
+                    key={book.id}
+                    handleShelfChange={this.props.handleShelfChange} />)
   }
-}
+};
 
-export default Books
+export default Books;

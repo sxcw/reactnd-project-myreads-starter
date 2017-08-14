@@ -42,65 +42,70 @@ class App extends Component {
   }
 
   getAllBooks() {
-    BooksAPI.getAll().then((books) => {
+    BooksAPI.getAll()
+    .then((books) => {
       this.setState({ books })
     })
+    .catch(error => console.log('error:', error))
   }
 
   getShelf(target) {
-    return this.state.books.find(book => book.id == target.id).shelf;
+    return this.state.books.find(book => book.id === target.id).shelf;
   }
 
-  handleShelfChange(shelf, book) {
-    BooksAPI.update(book, shelf)
-    .then((book) => {
-      this.getAllBooks()
+  handleShelfChange(shelf, selectedBook) {
+    const self = this;
+
+    BooksAPI.update(selectedBook, shelf)
+    .then(booksWithUpdatedShelf => {
+      if (self.state.searchResults) {
+        const searchResults = self.state.searchResults.map(book => {
+          if (book.id === selectedBook.id) {
+            book.shelf = shelf;
+          }
+          return book;
+        })
+
+        self.setState({ searchResults })
+      }
+        self.getAllBooks();
     })
+    .catch(error => console.log('error:', error))
+  }
+
+  handleAddShelfForBooks(self, books) {
+    const ids = self.state.books.map(book => book.id);
+    const updatedBooks = books.reduce((res, curr) => {
+      if (ids.indexOf(curr.id) === -1) {
+        curr.shelf = 'none';
+        res.originals.push(curr);
+      } else {
+        const updatedShelf = self.getShelf(curr);
+        curr.shelf = updatedShelf;
+        res.updated.push(curr);
+      }
+
+      return res;
+    }, {originals: [], updated: []});
+
+    const searchResults = updatedBooks.originals.concat(updatedBooks.updated);
+    self.setState({ searchResults })
   }
 
   handleSearch(term) {
     const self = this;
-    const originals = [];
-    const updated = []
-      BooksAPI.search(term, 20)
-      .then((books) => {
 
-        if (!books) {
-          self.setState({ searchResults: null })
-          return;
-        }
+    BooksAPI.search(term, 20)
+    .then(books => {
+      if (!books || books.error) {
+        self.setState({ searchResults: null })
+        return;
+      }
 
-        const ids = self.state.books.map(book => book.id);
-        // const booksInShelf = books.filter(book => {
-        //   if (ids.indexOf(book.id) === -1) {
-        //     originals.push(book);
-        //     return false;
-        //   }
-        //   return true;
-        //   }).map(book => {
-        //     const shelf = self.getShelf(book);
-        //     book.shelf = shelf;
-        //     return book;
-        //   })
-
-          const updatedBooks = books.reduce((res, curr) => {
-            if (ids.indexOf(curr.id) === -1) {
-              res.originals.push(curr)
-            } else {
-              const shelf = self.getShelf(curr);
-              curr.shelf = shelf;
-              res.updated.push(curr)
-            }
-            return res;
-          }, {originals: [], updated: []})
-          console.log('updated:', updatedBooks);
-        const searchResults = updatedBooks.originals.concat(updatedBooks.updated)
-        console.log('searchResults', searchResults)
-        self.setState({ searchResults })
-      })
-      .catch(error => console.log('error:', error))
+      self.handleAddShelfForBooks(self, books);
+    })
+    .catch(error => console.log('error:', error))
   }
-
-}
+};
 
 export default App;
